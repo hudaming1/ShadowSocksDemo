@@ -68,7 +68,7 @@ public class ProxyServer {
 						final InputStream remoteInputStream = remoteSocket.getInputStream();
 						final OutputStream remoteOutputStream = remoteSocket.getOutputStream();
 
-						// pipe2
+						// pipe
 						ThreadPool.execute(new Runnable() {
 							@Override
 							public void run() {
@@ -77,6 +77,7 @@ public class ProxyServer {
 								long lastReadTime = 0L;
 								while (length >= 0) {
 									try {
+										// client <---read--- server
 										length = clientSocksInputStream.read(buffer);
 										lastReadTime = System.currentTimeMillis();
 									} catch (InterruptedIOException e) {
@@ -89,7 +90,8 @@ public class ProxyServer {
 									}
 									try {
 										if (length > 0) {
-											remoteOutputStream.write(Utils.decrypt(buffer), 0, length);
+//											remoteOutputStream.write(Utils.decrypt(buffer), 0, length);
+											remoteOutputStream.write(buffer, 0, length);
 											remoteOutputStream.flush();
 										}
 									} catch (IOException e) {
@@ -113,9 +115,10 @@ public class ProxyServer {
 
 						int length = 0;
 						long lastReadTime = 0L;
-						// pipe1
+						// pipe (server <-> remote)
 						while (length >= 0) {
 							try {
+								// server ----(read)----> remote
 								length = remoteInputStream.read(buffer);
 								lastReadTime = System.currentTimeMillis();
 							} catch (InterruptedIOException ce) {
@@ -128,7 +131,13 @@ public class ProxyServer {
 							}
 							try {
 								if (length > 0) {
-									clientSocksOutputStream.write(Utils.encrypt(buffer), 0, length);
+									// server ----(write)-----> client
+									byte[] bb = new byte[length];
+									System.arraycopy(buffer, 0, bb, 0, length);
+									byte[] bytes = Utils.encrypt(bb);
+									clientSocksOutputStream.writeInt(bytes.length);
+									clientSocksOutputStream.write(bytes, 0, bytes.length);
+//									log("reponse to client " + Arrays.toString(buffer));
 									clientSocksOutputStream.flush();
 								}
 							} catch (IOException ce) {

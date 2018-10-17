@@ -33,8 +33,8 @@ public class Utils {
 
 	public static byte[] encrypt(byte[] _bytes) {
 		try {
-//			return AESCoder.encrypt(_bytes);
-			return baseEncrypt(_bytes);
+			return AESCoder.encrypt(_bytes);
+//			return baseEncrypt(_bytes);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("decrypt error, byte=" + Arrays.toString(_bytes));
@@ -43,8 +43,8 @@ public class Utils {
 
 	public static byte[] decrypt(byte[] _bytes) {
 		try {
-//			return AESCoder.decrypt(_bytes);
-			return baseDecrypt(_bytes);
+			return AESCoder.decrypt(_bytes);
+//			return baseDecrypt(_bytes);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("decrypt error, byte=" + Arrays.toString(_bytes));

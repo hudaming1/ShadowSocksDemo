@@ -161,7 +161,7 @@ public class ProxyClient {
 						sockServerOutputStream.write(targetRemoteHost.getBytes());
 						sockServerOutputStream.writeShort(targetRemotePort);
 						
-						// pipe1
+						// pipe (browser <-> client)
 						ThreadPool.execute(new Runnable() {
 							@Override
 							public void run() {
@@ -182,7 +182,8 @@ public class ProxyClient {
 									}
 									try {
 										if (length > 0) {
-											sockServerOutputStream.write(Utils.encrypt(buffer), 0, length);
+//											sockServerOutputStream.write(Utils.encrypt(buffer), 0, length);
+											sockServerOutputStream.write(buffer, 0, length);
 											sockServerOutputStream.flush();
 										}
 									} catch (IOException e) {
@@ -206,10 +207,18 @@ public class ProxyClient {
 
 						int length = 0;
 						long lastReadTime = 0L;
-						// pipe1
+						// pipe (client <-> server)
+						byte[] buf = new byte[BUFFER_SIZE];
+						int decryptedLen = 0;
 						while (length >= 0) {
+							length = 0;
 							try {
-								length = sockServerInputStream.read(buffer);
+								decryptedLen = sockServerInputStream.readInt();
+								byte[] bytes = new byte[decryptedLen];
+								length = sockServerInputStream.read(bytes);
+								buf = Utils.decrypt(bytes);
+//								log("before decrypt data " + Arrays.toString(bytes));
+//								log("\t\t\tdecrypted data " + Arrays.toString(buf));
 								lastReadTime = System.currentTimeMillis();
 							} catch (InterruptedIOException ce) {
 								if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
@@ -221,7 +230,8 @@ public class ProxyClient {
 							}
 							try {
 								if (length > 0) {
-									browserClientOutputStream.write(Utils.decrypt(buffer), 0, length);
+									// client ---(write)---> browser
+									browserClientOutputStream.write(buf, 0, buf.length);
 									browserClientOutputStream.flush();
 								}
 							} catch (IOException ce) {
