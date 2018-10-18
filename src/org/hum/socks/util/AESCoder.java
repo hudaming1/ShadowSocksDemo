@@ -14,7 +14,7 @@ public class AESCoder {
 
 	private static final String KEY_ALGORITHM = "AES";
 	private static final String DEFAULT_CIPHER_ALGORITHM = "AES/ECB/PKCS5Padding";// 默认的加密算法
-	private static final byte[] DefaultKey = "Huming^FJFIJ(H@FUIbggijsigJ*&#^&HFOIJ".getBytes();
+	private static final byte[] DefaultKey = "FI)!(Q@jd.3Ufh1S".getBytes();
 
 	public static byte[] initSecretKey() {
 
