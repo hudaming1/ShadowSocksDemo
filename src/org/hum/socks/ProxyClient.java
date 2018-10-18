@@ -186,8 +186,12 @@ public class ProxyClient {
 									}
 									try {
 										if (length > 0) {
-//											sockServerOutputStream.write(Utils.encrypt(buffer), 0, length);
-											sockServerOutputStream.write(buffer, 0, length);
+											byte[] bb = new byte[length];
+											System.arraycopy(buffer, 0, bb, 0, length);
+											byte[] bytes = Utils.encrypt(bb);
+											sockServerOutputStream.writeInt(bytes.length);
+											sockServerOutputStream.write(bytes, 0, bytes.length);
+//											sockServerOutputStream.write(buffer, 0, length);
 											sockServerOutputStream.flush();
 										}
 									} catch (IOException e) {

@@ -76,9 +76,16 @@ public class ProxyServer {
 								int length = 0;
 								long lastReadTime = 0L;
 								while (length >= 0) {
+									length = 0;
 									try {
 										// client <---read--- server
+										/**
 										length = clientSocksInputStream.read(buffer);
+										lastReadTime = System.currentTimeMillis();
+										**/
+										byte[] beforeDecrpytByte = Utils.readBytes(clientSocksInputStream);
+										length = beforeDecrpytByte.length;
+										buffer = Utils.decrypt(beforeDecrpytByte);
 										lastReadTime = System.currentTimeMillis();
 									} catch (InterruptedIOException e) {
 										if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
@@ -92,7 +99,7 @@ public class ProxyServer {
 									try {
 										if (length > 0) {
 //											remoteOutputStream.write(Utils.decrypt(buffer), 0, length);
-											remoteOutputStream.write(buffer, 0, length);
+											remoteOutputStream.write(buffer, 0, buffer.length);
 											remoteOutputStream.flush();
 										}
 									} catch (IOException e) {
