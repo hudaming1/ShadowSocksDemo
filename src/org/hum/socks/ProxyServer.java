@@ -98,7 +98,6 @@ public class ProxyServer {
 									}
 									try {
 										if (length > 0) {
-//											remoteOutputStream.write(Utils.decrypt(buffer), 0, length);
 											remoteOutputStream.write(buffer, 0, buffer.length);
 											remoteOutputStream.flush();
 										}

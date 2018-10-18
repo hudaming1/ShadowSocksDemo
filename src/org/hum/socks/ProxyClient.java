@@ -25,9 +25,9 @@ public class ProxyClient {
 	static final ExecutorService ThreadPool = Executors.newFixedThreadPool(300);
 	static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	static final int BUFFER_SIZE = 4096;
-	static final int LISTEN_PORT = 1081;
-//	static final String PROXY_SERVER_IP = "207.246.81.151";
-	static final String PROXY_SERVER_IP = "47.75.102.227";
+	static final int LISTEN_PORT = 1080;
+	static final String PROXY_SERVER_IP = "207.246.81.151";
+//	static final String PROXY_SERVER_IP = "47.75.102.227";
 //	static final String PROXY_SERVER_IP = "localhost";
 	static final int PROXY_SERVER_PORT = ProxyServer.LISTEN_PORT;
 	static final int SOCKET_OPTION_SOTIMEOUT = 7000;
