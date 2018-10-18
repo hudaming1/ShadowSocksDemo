@@ -26,7 +26,7 @@ public class ProxyServer {
 	static final ExecutorService ThreadPool = Executors.newFixedThreadPool(300);
 	static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	static final int BUFFER_SIZE = 4096;
-	static final int LISTEN_PORT = 20888;
+	static final int LISTEN_PORT = 1080;
 	static final int SOCKET_OPTION_SOTIMEOUT = 7000;
 	static final long IDLE_TIME = 180000L; // 闲置超时5秒
 
@@ -85,8 +85,9 @@ public class ProxyServer {
 											log(Thread.currentThread().getName() + " exit");
 										}
 										length = 0;
-									} catch (IOException e) {
-										length = -1;
+									} catch (IOException ignore) {
+										// length = -1;
+//										ignore.printStackTrace();
 									}
 									try {
 										if (length > 0) {
@@ -95,7 +96,8 @@ public class ProxyServer {
 											remoteOutputStream.flush();
 										}
 									} catch (IOException e) {
-										e.printStackTrace();
+										// e.printStackTrace();
+										length = -1;
 									}
 								}
 								try {
@@ -126,8 +128,9 @@ public class ProxyServer {
 									log(Thread.currentThread().getName() + " exit");
 								}
 								length = 0;
-							} catch (IOException ce) {
-								length = -1;
+							} catch (IOException ignore) {
+								// length = -1;
+//								ignore.printStackTrace();
 							}
 							try {
 								if (length > 0) {
@@ -137,11 +140,12 @@ public class ProxyServer {
 									byte[] bytes = Utils.encrypt(bb);
 									clientSocksOutputStream.writeInt(bytes.length);
 									clientSocksOutputStream.write(bytes, 0, bytes.length);
-//									log("reponse to client " + Arrays.toString(buffer));
+									// log("reponse to client, length=" + bytes.length + ", datas=" + java.util.Arrays.toString(bytes));
 									clientSocksOutputStream.flush();
 								}
 							} catch (IOException ce) {
-								ce.printStackTrace();
+								// ce.printStackTrace();
+								length = -1;
 							}
 						}
 

@@ -25,8 +25,10 @@ public class ProxyClient {
 	static final ExecutorService ThreadPool = Executors.newFixedThreadPool(300);
 	static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	static final int BUFFER_SIZE = 4096;
-	static final int LISTEN_PORT = 1080;
-	static final String PROXY_SERVER_IP = "127.0.0.1";
+	static final int LISTEN_PORT = 1081;
+//	static final String PROXY_SERVER_IP = "207.246.81.151";
+//	static final String PROXY_SERVER_IP = "47.75.102.227";
+	static final String PROXY_SERVER_IP = "localhost";
 	static final int PROXY_SERVER_PORT = ProxyServer.LISTEN_PORT;
 	static final int SOCKET_OPTION_SOTIMEOUT = 7000;
 	static final long IDLE_TIME = 180000L; // 闲置超时5秒
@@ -160,6 +162,7 @@ public class ProxyClient {
 						sockServerOutputStream.writeInt(targetRemoteHost.length());
 						sockServerOutputStream.write(targetRemoteHost.getBytes());
 						sockServerOutputStream.writeShort(targetRemotePort);
+						sockServerOutputStream.flush();
 						
 						// pipe (browser <-> client)
 						ThreadPool.execute(new Runnable() {
@@ -177,8 +180,9 @@ public class ProxyClient {
 											log(Thread.currentThread().getName() + " exit");
 										}
 										length = 0;
-									} catch (IOException e) {
-										length = -1;
+									} catch (IOException ignore) {
+										// length = -1;
+//										ignore.printStackTrace();
 									}
 									try {
 										if (length > 0) {
@@ -187,7 +191,8 @@ public class ProxyClient {
 											sockServerOutputStream.flush();
 										}
 									} catch (IOException e) {
-										e.printStackTrace();
+										// e.printStackTrace();
+										length = -1;
 									}
 								}
 								try {
@@ -209,24 +214,24 @@ public class ProxyClient {
 						long lastReadTime = 0L;
 						// pipe (client <-> server)
 						byte[] buf = new byte[BUFFER_SIZE];
-						int decryptedLen = 0;
 						while (length >= 0) {
 							length = 0;
 							try {
-								decryptedLen = sockServerInputStream.readInt();
-								byte[] bytes = new byte[decryptedLen];
-								length = sockServerInputStream.read(bytes);
-								buf = Utils.decrypt(bytes);
-//								log("before decrypt data " + Arrays.toString(bytes));
-//								log("\t\t\tdecrypted data " + Arrays.toString(buf));
+								byte[] beforeDecrpytByte = Utils.readBytes(sockServerInputStream);
+								length = beforeDecrpytByte.length;
+								// 当bytes超过4000时，最后11位就会变成0，难道是被墙了？
+								// log("before decrypt data(" + length + ") " + Arrays.toString(beforeDecrpytByte));
+								buf = Utils.decrypt(beforeDecrpytByte);
+								// log("\t\t\tdecrypted data " + Arrays.toString(buf));
 								lastReadTime = System.currentTimeMillis();
 							} catch (InterruptedIOException ce) {
 								if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
 									log(Thread.currentThread().getName() + " exit");
 								}
 								length = 0;
-							} catch (IOException ce) {
-								length = -1;
+							} catch (IOException ignore) {
+//								length = -1;
+//								ignore.printStackTrace();
 							}
 							try {
 								if (length > 0) {
@@ -261,7 +266,7 @@ public class ProxyClient {
 			});
 		}
 	}
-
+	
 	static void logBuffer(byte[] buffer) {
 		try {
 			String line = null;

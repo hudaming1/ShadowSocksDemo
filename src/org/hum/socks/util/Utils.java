@@ -1,5 +1,7 @@
 package org.hum.socks.util;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class Utils {
@@ -81,4 +83,24 @@ public class Utils {
 	static void print(byte[] bytes) {
 		System.out.println(Arrays.toString(bytes));
 	}
+
+
+	public static byte[] readBytes(DataInputStream inputStream) throws IOException {
+		int readedLength = 0;
+		byte[] arr = new byte[inputStream.readInt()];
+		while (readedLength < arr.length) {
+			int available = inputStream.available();
+			byte[] buffer = new byte[available > arr.length ? arr.length : available];
+			int len = inputStream.read(buffer);
+			try {
+				System.arraycopy(buffer, 0, arr, readedLength, len);
+			} catch (ArrayIndexOutOfBoundsException ce) {
+				System.out.println("out of bounds, arr.length=" + arr.length + ", readedLength=" + readedLength + ", available=" + available + ", len=" + len);
+				throw ce;
+			}
+			readedLength += len;
+		}
+		return arr;
+	}
+
 }
