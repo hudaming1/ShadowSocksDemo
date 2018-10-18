@@ -85,12 +85,13 @@ public class Utils {
 	}
 
 
-	public static byte[] readBytes(DataInputStream inputStream) throws IOException {
+	public static byte[] readEncryptBytes(DataInputStream inputStream) throws IOException {
 		int readedLength = 0;
 		byte[] arr = new byte[inputStream.readInt()];
 		while (readedLength < arr.length) {
 			int available = inputStream.available();
-			byte[] buffer = new byte[available > arr.length ? arr.length : available];
+			int readCount = (arr.length - readedLength);
+			byte[] buffer = new byte[readCount];
 			int len = inputStream.read(buffer);
 			try {
 				System.arraycopy(buffer, 0, arr, readedLength, len);

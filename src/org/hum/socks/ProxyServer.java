@@ -83,7 +83,7 @@ public class ProxyServer {
 										length = clientSocksInputStream.read(buffer);
 										lastReadTime = System.currentTimeMillis();
 										**/
-										byte[] beforeDecrpytByte = Utils.readBytes(clientSocksInputStream);
+										byte[] beforeDecrpytByte = Utils.readEncryptBytes(clientSocksInputStream);
 										length = beforeDecrpytByte.length;
 										buffer = Utils.decrypt(beforeDecrpytByte);
 										lastReadTime = System.currentTimeMillis();

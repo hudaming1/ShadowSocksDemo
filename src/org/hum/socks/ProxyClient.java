@@ -27,8 +27,8 @@ public class ProxyClient {
 	static final int BUFFER_SIZE = 4096;
 	static final int LISTEN_PORT = 1081;
 //	static final String PROXY_SERVER_IP = "207.246.81.151";
-//	static final String PROXY_SERVER_IP = "47.75.102.227";
-	static final String PROXY_SERVER_IP = "localhost";
+	static final String PROXY_SERVER_IP = "47.75.102.227";
+//	static final String PROXY_SERVER_IP = "localhost";
 	static final int PROXY_SERVER_PORT = ProxyServer.LISTEN_PORT;
 	static final int SOCKET_OPTION_SOTIMEOUT = 7000;
 	static final long IDLE_TIME = 180000L; // 闲置超时5秒
@@ -191,7 +191,6 @@ public class ProxyClient {
 											byte[] bytes = Utils.encrypt(bb);
 											sockServerOutputStream.writeInt(bytes.length);
 											sockServerOutputStream.write(bytes, 0, bytes.length);
-//											sockServerOutputStream.write(buffer, 0, length);
 											sockServerOutputStream.flush();
 										}
 									} catch (IOException e) {
@@ -217,15 +216,15 @@ public class ProxyClient {
 						int length = 0;
 						long lastReadTime = 0L;
 						// pipe (client <-> server)
-						byte[] buf = new byte[BUFFER_SIZE];
 						while (length >= 0) {
+							byte[] decryptBuffer = null;
 							length = 0;
 							try {
-								byte[] beforeDecrpytByte = Utils.readBytes(sockServerInputStream);
+								// client ---(read)----> server
+								byte[] beforeDecrpytByte = Utils.readEncryptBytes(sockServerInputStream);
 								length = beforeDecrpytByte.length;
-								// 当bytes超过4000时，最后11位就会变成0，难道是被墙了？
 								// log("before decrypt data(" + length + ") " + Arrays.toString(beforeDecrpytByte));
-								buf = Utils.decrypt(beforeDecrpytByte);
+								decryptBuffer = Utils.decrypt(beforeDecrpytByte);
 								// log("\t\t\tdecrypted data " + Arrays.toString(buf));
 								lastReadTime = System.currentTimeMillis();
 							} catch (InterruptedIOException ce) {
@@ -240,7 +239,7 @@ public class ProxyClient {
 							try {
 								if (length > 0) {
 									// client ---(write)---> browser
-									browserClientOutputStream.write(buf, 0, buf.length);
+									browserClientOutputStream.write(decryptBuffer, 0, decryptBuffer.length);
 									browserClientOutputStream.flush();
 								}
 							} catch (IOException ce) {
