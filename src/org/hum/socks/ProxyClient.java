@@ -26,12 +26,12 @@ public class ProxyClient {
 	static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	static final int BUFFER_SIZE = 4096;
 	static final int LISTEN_PORT = 1080;
-	static final String PROXY_SERVER_IP = "207.246.81.151";
+//	static final String PROXY_SERVER_IP = "207.246.81.151";
 //	static final String PROXY_SERVER_IP = "47.75.102.227";
-//	static final String PROXY_SERVER_IP = "localhost";
+	static final String PROXY_SERVER_IP = "localhost";
 	static final int PROXY_SERVER_PORT = ProxyServer.LISTEN_PORT;
 	static final int SOCKET_OPTION_SOTIMEOUT = 7000;
-	static final long IDLE_TIME = 180000L; // 闲置超时5秒
+	static final long IDLE_TIME = 5000L; // 闲置超时5秒
 	static final int MAGIC_NUMBER = 19237;
 
 	private static void log(String str) {
@@ -45,6 +45,7 @@ public class ProxyClient {
 
 		while (true) {
 			final Socket socket = server.accept();
+			socket.setSoTimeout(100);
 			// socket.setSoTimeout(SOCKET_OPTION_SOTIMEOUT);
 			log("accept client [" + socket.getInetAddress().getHostAddress() + ":" + socket.getPort() + "]");
 
@@ -54,7 +55,6 @@ public class ProxyClient {
 					try {
 						final DataInputStream browserClientInputStream = new DataInputStream(socket.getInputStream());
 						final DataOutputStream browserClientOutputStream = new DataOutputStream(socket.getOutputStream());
-						byte[] buffer = new byte[BUFFER_SIZE];
 
 						/**
 						 * 接收第一次请求消息体
@@ -178,8 +178,10 @@ public class ProxyClient {
 									} catch (InterruptedIOException e) {
 										if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
 											log(Thread.currentThread().getName() + " exit");
+											length = -1;
+										} else {
+											length = 0;
 										}
-										length = 0;
 									} catch (IOException ignore) {
 										// length = -1;
 //										ignore.printStackTrace();
@@ -230,8 +232,10 @@ public class ProxyClient {
 							} catch (InterruptedIOException ce) {
 								if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
 									log(Thread.currentThread().getName() + " exit");
+									length = -1;
+								} else {
+									length = 0;
 								}
-								length = 0;
 							} catch (IOException ignore) {
 //								length = -1;
 //								ignore.printStackTrace();

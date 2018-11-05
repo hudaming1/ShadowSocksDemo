@@ -26,9 +26,9 @@ public class ProxyServer {
 	static final ExecutorService ThreadPool = Executors.newFixedThreadPool(300);
 	static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	static final int BUFFER_SIZE = 4096;
-	static final int LISTEN_PORT = 1080;
+	static final int LISTEN_PORT = 1081;
 	static final int SOCKET_OPTION_SOTIMEOUT = 7000;
-	static final long IDLE_TIME = 180000L; // 闲置超时5秒
+	static final long IDLE_TIME = 5000L; // 闲置超时5秒
 
 	private static void log(String str) {
 		System.out.println("[socks-server][" + Thread.currentThread().getName() + "]\t\t" + sdf.format(new Date()) + "\t\t" + str);
@@ -41,6 +41,7 @@ public class ProxyServer {
 
 		while (true) {
 			final Socket socket = server.accept();
+			socket.setSoTimeout(100);
 			log("accept client [" + socket.getInetAddress().getHostAddress() + ":" + socket.getPort() + "]");
 
 			ThreadPool.execute(new Runnable() {
@@ -64,6 +65,7 @@ public class ProxyServer {
 						remotePort = clientSocksInputStream.readShort();
 						
 						Socket remoteSocket = new Socket(remoteHost, remotePort);
+						remoteSocket.setSoTimeout(100);
 
 						final InputStream remoteInputStream = remoteSocket.getInputStream();
 						final OutputStream remoteOutputStream = remoteSocket.getOutputStream();
@@ -90,8 +92,10 @@ public class ProxyServer {
 									} catch (InterruptedIOException e) {
 										if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
 											log(Thread.currentThread().getName() + " exit");
+											length = -1;
+										} else {
+											length = 0;
 										}
-										length = 0;
 									} catch (IOException ignore) {
 										// length = -1;
 //										ignore.printStackTrace();
@@ -132,8 +136,10 @@ public class ProxyServer {
 							} catch (InterruptedIOException ce) {
 								if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
 									log(Thread.currentThread().getName() + " exit");
+									length = -1;
+								} else {
+									length = 0;
 								}
-								length = 0;
 							} catch (IOException ignore) {
 								// length = -1;
 //								ignore.printStackTrace();
