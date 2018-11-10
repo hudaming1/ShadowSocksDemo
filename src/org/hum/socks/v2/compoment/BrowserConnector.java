@@ -39,7 +39,7 @@ public class BrowserConnector implements Runnable {
 		// 2.握手成功后，对远端SocksServer发起连接，准备让其代理传输数据
 		try {
 			this.browserSocket = socket;
-			this.serverSocket = new Socket(Configuration.SERVER_HOST, Configuration.SOCKS_CLIENT_LISTENING_PORT);
+			this.serverSocket = new Socket(Configuration.SERVER_HOST, Configuration.SOCKS_SERVER_LISTENING_PORT);
 		} catch (IOException e) {
 			new SocksException("connect server occured exception!", e);
 		}

@@ -46,19 +46,23 @@ public class PipeChannel implements Runnable {
 			}
 		}
 		// 关闭管道
-		try {
-			_destroy();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		_destroy();
 	}
-	
-	private void _destroy() throws IOException {
+
+	private void _destroy() {
 		if (inputStream != null) {
-			inputStream.close();
+			try {
+				inputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		if (outputStream != null) {
-			outputStream.close();
+			try {
+				outputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
