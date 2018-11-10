@@ -4,7 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import org.hum.socks.v2.common.Configure;
+import org.hum.socks.v2.common.Configuration;
 import org.hum.socks.v2.common.SocksException;
 import org.hum.socks.v2.protocol.HostEntity;
 import org.hum.socks.v2.protocol.SocksFactory;
@@ -39,7 +39,7 @@ public class BrowserConnector implements Runnable {
 		// 2.握手成功后，对远端SocksServer发起连接，准备让其代理传输数据
 		try {
 			this.browserSocket = socket;
-			this.serverSocket = new Socket(Configure.SERVER_HOST, Configure.SERVER_PORT);
+			this.serverSocket = new Socket(Configuration.SERVER_HOST, Configuration.SOCKS_CLIENT_LISTENING_PORT);
 		} catch (IOException e) {
 			new SocksException("connect server occured exception!", e);
 		}
@@ -56,10 +56,16 @@ public class BrowserConnector implements Runnable {
 	@Override
 	public void run() {
 		try {
+			// pipe1 : browser -----> socks_client
 			ShadowThreadPool.execute(new PipeChannel(browserSocket.getInputStream(), serverSocket.getOutputStream()));
+		} catch (IOException e) {
+			throw new SocksException("pipe1 occured excpetion", e);
+		}
+		try {
+			// pipe4 : socks_client -----> browser
 			ShadowThreadPool.execute(new PipeChannel(serverSocket.getInputStream(), browserSocket.getOutputStream()));
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new SocksException("pipe4 occured excpetion", e);
 		}
 	}
 }
