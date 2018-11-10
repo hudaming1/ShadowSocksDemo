@@ -1,4 +1,4 @@
-package org.hum.socks;
+package org.hum.socks.v1;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -12,8 +12,11 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hum.socks.util.Utils;
 
@@ -22,6 +25,7 @@ import org.hum.socks.util.Utils;
  */
 public class ProxyClient {
 
+	static final AtomicInteger threadCounter = new AtomicInteger(0);
 	static final ExecutorService ThreadPool = Executors.newFixedThreadPool(300);
 	static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	static final int BUFFER_SIZE = 4096;
@@ -33,19 +37,24 @@ public class ProxyClient {
 	static final int SOCKET_OPTION_SOTIMEOUT = 7000;
 	static final long IDLE_TIME = 5000L; // 闲置超时5秒
 	static final int MAGIC_NUMBER = 19237;
+	static final int SO_TIMEOUT = 10; 
+	static final List<String> ThreadList = new CopyOnWriteArrayList<>();
 
 	private static void log(String str) {
 		System.out.println("[socks-client][" + Thread.currentThread().getName() + "]\t\t" + sdf.format(new Date()) + "\t\t" + str);
+		System.out.println("current-threads=" + ThreadList);
 	}
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws IOException {
+		threadCounter.incrementAndGet();
 		ServerSocket server = new ServerSocket(LISTEN_PORT);
 		log("SocksClient start, listening port:" + LISTEN_PORT);
+		ThreadList.add("main");
 
 		while (true) {
 			final Socket socket = server.accept();
-			socket.setSoTimeout(100);
+			socket.setSoTimeout(SO_TIMEOUT);
 			// socket.setSoTimeout(SOCKET_OPTION_SOTIMEOUT);
 			log("accept client [" + socket.getInetAddress().getHostAddress() + ":" + socket.getPort() + "]");
 
@@ -53,6 +62,8 @@ public class ProxyClient {
 				@Override
 				public void run() {
 					try {
+						log("New Thread enter, threadCount=" + threadCounter.incrementAndGet());
+						ThreadList.add("socket-thread-" + Thread.currentThread().getName());
 						final DataInputStream browserClientInputStream = new DataInputStream(socket.getInputStream());
 						final DataOutputStream browserClientOutputStream = new DataOutputStream(socket.getOutputStream());
 
@@ -155,6 +166,7 @@ public class ProxyClient {
 
 						// to socks-server
 						Socket sockServerSocket = new Socket(PROXY_SERVER_IP, PROXY_SERVER_PORT);
+						// sockServerSocket.setSoTimeout(SO_TIMEOUT);
 						final DataInputStream sockServerInputStream = new DataInputStream(sockServerSocket.getInputStream());
 						final DataOutputStream sockServerOutputStream = new DataOutputStream(sockServerSocket.getOutputStream());
 						
@@ -168,6 +180,8 @@ public class ProxyClient {
 						ThreadPool.execute(new Runnable() {
 							@Override
 							public void run() {
+								log("New Thread enter, threadCount=" + threadCounter.incrementAndGet());
+								ThreadList.add("pipe-thread-" + Thread.currentThread().getName());
 								byte[] buffer = new byte[BUFFER_SIZE];
 								int length = 0;
 								long lastReadTime = 0L;
@@ -177,7 +191,6 @@ public class ProxyClient {
 										lastReadTime = System.currentTimeMillis();
 									} catch (InterruptedIOException e) {
 										if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
-											log(Thread.currentThread().getName() + " exit");
 											length = -1;
 										} else {
 											length = 0;
@@ -212,6 +225,9 @@ public class ProxyClient {
 								} catch (Exception ce) {
 									ce.printStackTrace();
 								}
+								
+								log("Thread exit, thread_count=" + threadCounter.decrementAndGet());
+								ThreadList.remove("pipe-thread-" + Thread.currentThread().getName());
 							}
 						});
 
@@ -230,11 +246,13 @@ public class ProxyClient {
 								// log("\t\t\tdecrypted data " + Arrays.toString(buf));
 								lastReadTime = System.currentTimeMillis();
 							} catch (InterruptedIOException ce) {
-								if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
-									log(Thread.currentThread().getName() + " exit");
+								long t = (System.currentTimeMillis() - lastReadTime);
+								if (t >= (IDLE_TIME - 1000)) {
+									log("pipe-thread-" + Thread.currentThread().getName() + " exit");
 									length = -1;
 								} else {
 									length = 0;
+									log("pipe-thread.time=" + t);
 								}
 							} catch (IOException ignore) {
 //								length = -1;
@@ -252,8 +270,8 @@ public class ProxyClient {
 						}
 
 						try {
-							sockServerOutputStream.close();
-							log("sockServerOutputStream closed");
+							sockServerInputStream.close();
+							log("sockServerInputStream closed");
 						} catch (Exception ce) {
 							ce.printStackTrace();
 						}
@@ -269,6 +287,8 @@ public class ProxyClient {
 						ce.printStackTrace();
 					} finally {
 					}
+					log("Thread exit, thread_count=" + threadCounter.decrementAndGet());
+					ThreadList.remove("socket-thread-" + Thread.currentThread().getName());
 				}
 			});
 		}

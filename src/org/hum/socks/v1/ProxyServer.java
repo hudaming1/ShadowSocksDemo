@@ -1,4 +1,4 @@
-package org.hum.socks;
+package org.hum.socks.v1;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hum.socks.util.Utils;
 
@@ -23,12 +24,14 @@ import org.hum.socks.util.Utils;
  */
 public class ProxyServer {
 
+	static final AtomicInteger threadCounter = new AtomicInteger(0);
 	static final ExecutorService ThreadPool = Executors.newFixedThreadPool(300);
 	static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	static final int BUFFER_SIZE = 4096;
 	static final int LISTEN_PORT = 1081;
 	static final int SOCKET_OPTION_SOTIMEOUT = 7000;
 	static final long IDLE_TIME = 5000L; // 闲置超时5秒
+	static final int SO_TIMEOUT = 10;
 
 	private static void log(String str) {
 		System.out.println("[socks-server][" + Thread.currentThread().getName() + "]\t\t" + sdf.format(new Date()) + "\t\t" + str);
@@ -38,16 +41,18 @@ public class ProxyServer {
 	public static void main(String[] args) throws IOException {
 		ServerSocket server = new ServerSocket(LISTEN_PORT);
 		log("server start, listening port:" + LISTEN_PORT);
+		threadCounter.incrementAndGet();
 
 		while (true) {
 			final Socket socket = server.accept();
-			socket.setSoTimeout(100);
+			socket.setSoTimeout(SO_TIMEOUT);
 			log("accept client [" + socket.getInetAddress().getHostAddress() + ":" + socket.getPort() + "]");
 
 			ThreadPool.execute(new Runnable() {
 				@Override
 				public void run() {
 					try {
+						log("New Thread enter, threadCount=" + threadCounter.incrementAndGet());
 						final DataInputStream clientSocksInputStream = new DataInputStream(socket.getInputStream());
 						final DataOutputStream clientSocksOutputStream = new DataOutputStream(socket.getOutputStream());
 						byte[] buffer = new byte[BUFFER_SIZE];
@@ -65,7 +70,7 @@ public class ProxyServer {
 						remotePort = clientSocksInputStream.readShort();
 						
 						Socket remoteSocket = new Socket(remoteHost, remotePort);
-						remoteSocket.setSoTimeout(100);
+						remoteSocket.setSoTimeout(SO_TIMEOUT);
 
 						final InputStream remoteInputStream = remoteSocket.getInputStream();
 						final OutputStream remoteOutputStream = remoteSocket.getOutputStream();
@@ -74,6 +79,7 @@ public class ProxyServer {
 						ThreadPool.execute(new Runnable() {
 							@Override
 							public void run() {
+								log("New Thread enter, threadCount=" + threadCounter.incrementAndGet());
 								byte[] buffer = new byte[BUFFER_SIZE];
 								int length = 0;
 								long lastReadTime = 0L;
@@ -122,6 +128,7 @@ public class ProxyServer {
 								} catch (Exception ce) {
 									ce.printStackTrace();
 								}
+								log("Thread exit, thread_count=" + threadCounter.decrementAndGet());
 							}
 						});
 
@@ -135,7 +142,6 @@ public class ProxyServer {
 								lastReadTime = System.currentTimeMillis();
 							} catch (InterruptedIOException ce) {
 								if ((System.currentTimeMillis() - lastReadTime) >= (IDLE_TIME - 1000)) {
-									log(Thread.currentThread().getName() + " exit");
 									length = -1;
 								} else {
 									length = 0;
@@ -179,6 +185,7 @@ public class ProxyServer {
 						ce.printStackTrace();
 					} finally {
 					}
+					log("Thread exit, thread_count=" + threadCounter.decrementAndGet());
 				}
 			});
 		}
