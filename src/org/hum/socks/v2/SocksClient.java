@@ -7,6 +7,7 @@ import java.net.Socket;
 import org.hum.socks.v2.compoment.BrowserConnector;
 import org.hum.socks.v2.compoment.ShadowThreadPool;
 
+@SuppressWarnings("resource")
 public class SocksClient {
 	
 	private static final int LISTENING_PORT = 1080;
