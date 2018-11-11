@@ -55,17 +55,9 @@ public class BrowserConnector implements Runnable {
 
 	@Override
 	public void run() {
-		try {
-			// pipe1 : browser -----> socks_client
-			ShadowThreadPool.execute(new PipeChannel(browserSocket.getInputStream(), serverSocket.getOutputStream()));
-		} catch (IOException e) {
-			throw new SocksException("pipe1 occured excpetion", e);
-		}
-		try {
-			// pipe4 : socks_client -----> browser
-			ShadowThreadPool.execute(new PipeChannel(serverSocket.getInputStream(), browserSocket.getOutputStream()));
-		} catch (IOException e) {
-			throw new SocksException("pipe4 occured excpetion", e);
-		}
+		// pipe1 : browser -----> socks_client
+		ShadowThreadPool.execute(new PipeChannel(browserSocket, serverSocket));
+		// pipe4 : socks_client -----> browser
+		ShadowThreadPool.execute(new PipeChannel(serverSocket, browserSocket));
 	}
 }

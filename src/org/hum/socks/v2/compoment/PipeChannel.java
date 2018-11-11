@@ -3,9 +3,11 @@ package org.hum.socks.v2.compoment;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.net.SocketException;
 
 import org.hum.socks.v2.common.Logger;
+import org.hum.socks.v2.common.SocksException;
 
 /**
  * 通信管道，负责将TCP字节流从一端(inputStream)传输到另一端(outputStream)
@@ -14,13 +16,21 @@ import org.hum.socks.v2.common.Logger;
  */
 public class PipeChannel implements Runnable {
 
+	private Socket inSocket;
+	private Socket outSocket;
 	private InputStream inputStream;
 	private OutputStream outputStream;
 	private final int IDLE_TIMEOUT = 1000; // 读空闲时间5秒
 
-	public PipeChannel(InputStream inputStream, OutputStream outputStream) {
-		this.inputStream = inputStream;
-		this.outputStream = outputStream;
+	public PipeChannel(Socket inSocket, Socket outSocket) {
+		this.inSocket = inSocket;
+		this.outSocket = outSocket;
+		try {
+			inputStream = inSocket.getInputStream();
+			outputStream = outSocket.getOutputStream();
+		} catch (Exception ce) {
+			throw new SocksException("open pipe channel occured exception", ce);
+		}
 	}
 
 	@Override
@@ -31,8 +41,10 @@ public class PipeChannel implements Runnable {
 		while (length >= 0) {
 			// 从管道一端读取流
 			try {
-				length = inputStream.read(buffer);
-				lastReadTime = System.currentTimeMillis();
+				if (!inSocket.isClosed()) {
+					length = inputStream.read(buffer);
+					lastReadTime = System.currentTimeMillis();
+				}
 			} catch (IOException e) {
 				if ((System.currentTimeMillis() - lastReadTime) >= IDLE_TIMEOUT) {
 					length = -1;
@@ -41,8 +53,10 @@ public class PipeChannel implements Runnable {
 			// 将流输出到对端
 			if (length > 0) {
 				try {
-					outputStream.write(buffer, 0, length);
-					outputStream.flush();
+					if (!outSocket.isClosed()) {
+						outputStream.write(buffer, 0, length);
+						outputStream.flush();
+					}
 				} catch (SocketException ignore) {
 					/**
 					 * <pre>
@@ -69,10 +83,26 @@ public class PipeChannel implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		if (!inSocket.isClosed()) {
+			try {
+				inSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		if (outputStream != null) {
 			try {
 				outputStream.close();
 			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (!outSocket.isClosed()) {
+			try {
+				outSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
