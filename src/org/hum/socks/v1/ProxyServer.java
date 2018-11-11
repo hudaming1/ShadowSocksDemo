@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.hum.socks.util.Utils;
+import org.hum.socks.v1.util.Utils;
 
 /**
  * @author huming
