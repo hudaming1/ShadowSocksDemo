@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
-import org.hum.socks.v2.common.Logger;
 import org.hum.socks.v2.common.SocksException;
 
 /**
@@ -72,7 +71,6 @@ public class PipeChannel implements Runnable {
 		}
 		// 关闭管道
 		_destroy();
-		Logger.log("destroy");
 	}
 
 	private void _destroy() {
@@ -87,7 +85,6 @@ public class PipeChannel implements Runnable {
 			try {
 				inSocket.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -102,7 +99,6 @@ public class PipeChannel implements Runnable {
 			try {
 				outSocket.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

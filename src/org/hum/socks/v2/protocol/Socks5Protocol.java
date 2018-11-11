@@ -137,7 +137,6 @@ public class Socks5Protocol implements SocksProtocol {
 		outBytes[9] = (byte) (targetPort & 0x00FF); // 输出端口低位
 		browserClientOutputStream.write(outBytes);
 		browserClientOutputStream.flush();
-		Logger.log("response byte-length : " + outBytes.length);
 		
 		// 最后返回要访问的目标地址+端口
 		return new HostEntity(targetRemoteHost, targetRemotePort); 
