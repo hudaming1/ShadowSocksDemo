@@ -56,8 +56,8 @@ public class BrowserConnector implements Runnable {
 	@Override
 	public void run() {
 		// pipe1 : browser -----> socks_client
-		ShadowThreadPool.execute(new PipeChannel(browserSocket, serverSocket));
+		// ShadowThreadPool.execute(new PipeChannel(browserSocket, serverSocket));
 		// pipe4 : socks_client -----> browser
-		ShadowThreadPool.execute(new PipeChannel(serverSocket, browserSocket));
+		// ShadowThreadPool.execute(new PipeChannel(serverSocket, browserSocket));
 	}
 }
