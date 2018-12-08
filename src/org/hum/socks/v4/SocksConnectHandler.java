@@ -2,6 +2,7 @@ package org.hum.socks.v4;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,25 +21,26 @@ public class SocksConnectHandler extends SimpleChannelInboundHandler<SocksCmdReq
 
 	@Override
 	protected void channelRead0(final ChannelHandlerContext ctx, final SocksCmdRequest request) throws Exception {
-		System.out.println("SocksConnectHandler.read.enter, " + request.host() + ":" + request.port());
-		bootstrap.group(ctx.channel().eventLoop()).channel(NioSocketChannel.class);
+		System.out.println("SocksHandler.enter");
+		final Channel browser2Server = ctx.channel();
+		bootstrap.group(browser2Server.eventLoop()).channel(NioSocketChannel.class);
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
 		bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
-		bootstrap.handler(new PipeHanlder(ctx));
+		bootstrap.handler(new PipeHanlder(browser2Server));
 		bootstrap.connect(request.host(), request.port()).addListener(new ChannelFutureListener() {
 			@Override
-			public void operationComplete(ChannelFuture future) throws Exception {
+			public void operationComplete(final ChannelFuture future) throws Exception {
 				// 如果连接成功后面讲请求转发过去；如果失败，则通过Socks协议告知客户端失败
 				if (!future.isSuccess()) {
-					ctx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.FAILURE, SocksAddressType.IPv4));
-					if (ctx.channel().isActive()) {
-						ctx.channel().writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+					browser2Server.writeAndFlush(new SocksCmdResponse(SocksCmdStatus.FAILURE, SocksAddressType.IPv4));
+					if (browser2Server.isActive()) {
+						browser2Server.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
 					}
 				} else {
-					future.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, SocksAddressType.IPv4)).addListener(new ChannelFutureListener() {
+					browser2Server.writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, SocksAddressType.IPv4)).addListener(new ChannelFutureListener() {
 						@Override
 						public void operationComplete(ChannelFuture channelFuture) {
-							// TODO
+							browser2Server.pipeline().addLast(new PipeHanlder(future.channel()));
 						}
 					});
 				}
@@ -48,21 +50,22 @@ public class SocksConnectHandler extends SimpleChannelInboundHandler<SocksCmdReq
 	
 	private static class PipeHanlder extends ChannelInboundHandlerAdapter {
 		
-		private ChannelHandlerContext outCtx;
+		private Channel outChannel;
 		
-		public PipeHanlder(ChannelHandlerContext outCtx) {
-			this.outCtx = outCtx;
+		public PipeHanlder(Channel channel) {
+			this.outChannel = channel;
 		}
 
 	    @Override
 	    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-	    		System.out.println("PipeHandler active");
+	    		ctx.fireChannelActive();
 	    }
 
 	    @Override
 	    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-	    		System.out.println("pipe.read=" + msg);
-	        outCtx.writeAndFlush(msg);
+	    		if (outChannel.isActive()) {
+	    			outChannel.writeAndFlush(msg);
+	    		}
 	    }
 	}
 }
