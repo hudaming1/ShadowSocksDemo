@@ -44,6 +44,8 @@ public class SocksConnectHandler extends SimpleChannelInboundHandler<SocksCmdReq
 						public void operationComplete(ChannelFuture channelFuture) {
 							// pipe2: server <-> remote
 							browser2Server.pipeline().addLast(new PipeHanlder(remoteChannelFuture.channel()));
+							// socks协议壳已脱，因此后面转发只需要靠pipehandler即可，因此删除SocksConnectHandler
+							browser2Server.pipeline().remove(SocksConnectHandler.this);
 						}
 					});
 				}
