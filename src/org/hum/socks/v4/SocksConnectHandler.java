@@ -21,26 +21,29 @@ public class SocksConnectHandler extends SimpleChannelInboundHandler<SocksCmdReq
 
 	@Override
 	protected void channelRead0(final ChannelHandlerContext ctx, final SocksCmdRequest request) throws Exception {
-		System.out.println("SocksHandler.enter");
 		final Channel browser2Server = ctx.channel();
 		bootstrap.group(browser2Server.eventLoop()).channel(NioSocketChannel.class);
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
 		bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+		// pipe1: browser <-> server
 		bootstrap.handler(new PipeHanlder(browser2Server));
+		// server与remote建立连接
 		bootstrap.connect(request.host(), request.port()).addListener(new ChannelFutureListener() {
 			@Override
-			public void operationComplete(final ChannelFuture future) throws Exception {
+			public void operationComplete(final ChannelFuture remoteChannelFuture) throws Exception {
 				// 如果连接成功后面讲请求转发过去；如果失败，则通过Socks协议告知客户端失败
-				if (!future.isSuccess()) {
+				if (!remoteChannelFuture.isSuccess()) {
 					browser2Server.writeAndFlush(new SocksCmdResponse(SocksCmdStatus.FAILURE, SocksAddressType.IPv4));
 					if (browser2Server.isActive()) {
 						browser2Server.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
 					}
 				} else {
+					// 连接成功后server告知browser成功，至此socks部分完成，开始转发数据字节。
 					browser2Server.writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, SocksAddressType.IPv4)).addListener(new ChannelFutureListener() {
 						@Override
 						public void operationComplete(ChannelFuture channelFuture) {
-							browser2Server.pipeline().addLast(new PipeHanlder(future.channel()));
+							// pipe2: server <-> remote
+							browser2Server.pipeline().addLast(new PipeHanlder(remoteChannelFuture.channel()));
 						}
 					});
 				}
@@ -57,12 +60,8 @@ public class SocksConnectHandler extends SimpleChannelInboundHandler<SocksCmdReq
 		}
 
 	    @Override
-	    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-	    		ctx.fireChannelActive();
-	    }
-
-	    @Override
 	    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+	    		// pipe mode : read and write
 	    		if (outChannel.isActive()) {
 	    			outChannel.writeAndFlush(msg);
 	    		}
