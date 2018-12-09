@@ -27,8 +27,11 @@ public class SocksServerHandler extends SimpleChannelInboundHandler<SocksRequest
 		case CMD:
 			SocksCmdRequest socksCmdRequest = (SocksCmdRequest) msg;
 			if (socksCmdRequest.cmdType() == SocksCmdType.CONNECT) {
+				// 进行socks握手完成后，下一步就要开始pipe模式(addLast和remove调换位置后就不行，为什么？ XXX)
 				ctx.pipeline().addLast(new SocksConnectHandler());
+				// socks握手部分差不多了，因此可以删除这个channel，握手结束在SocksConnectHandler里
 				ctx.pipeline().remove(this);
+				// 将msg继续往下传(其实就是交给了SocksConnecthandler处理)
 				ctx.fireChannelRead(socksCmdRequest);
 			} else {
 				ctx.close();
