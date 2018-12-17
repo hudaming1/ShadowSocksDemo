@@ -15,6 +15,7 @@ public class ProxyServerStart {
 		serverBootStrap.childHandler(new ChannelInitializer<Channel>() {
 			@Override
 			protected void initChannel(Channel ch) throws Exception {
+				ch.pipeline().addLast(new ProxyConnectMessageDecorder());
 				ch.pipeline().addLast(new ServerPipeChannelHandler());
 			}
 		});

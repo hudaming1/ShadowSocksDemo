@@ -19,6 +19,7 @@ public class LocalServerStart {
 			protected void initChannel(Channel ch) throws Exception {
 				ch.pipeline().addLast(new SocksInitRequestDecoder());
 				ch.pipeline().addLast(new SocksMessageEncoder());
+				ch.pipeline().addLast(new SocksServerHandler());
 			}
 		});
 		serverBootstrap.bind(1080);

@@ -27,8 +27,8 @@ public class SocksServerHandler extends SimpleChannelInboundHandler<SocksRequest
 		case CMD:
 			SocksCmdRequest req = (SocksCmdRequest) msg;
 			if (req.cmdType() == SocksCmdType.CONNECT) {
-				ctx.pipeline().remove(this);
 				ctx.pipeline().addLast(new ServerPipeChannelHandler());
+				ctx.pipeline().remove(this);
 				ctx.fireChannelRead(msg);
 			} else {
 				ctx.close();
