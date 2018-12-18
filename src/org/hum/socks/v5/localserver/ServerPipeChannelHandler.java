@@ -38,7 +38,7 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<SocksC
 				ch.pipeline().addLast(new PrepareConnectChannelHandler(browserCtx));
 			}
 		});
-		// bootstrap.handler(new PipeChannelHandler("local.pipe1", browserCtx.channel())); // 读proxy并向browser写（从proxy到browser）
+		// bootstrap.handler(new EncryptPipeChannelHandler("local.pipe1", browserCtx.channel())); // 读proxy并向browser写（从proxy到browser）
 		bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
 		bootstrap.connect(PROXY_HOST, PROXY_PORT).addListener(new ChannelFutureListener() {

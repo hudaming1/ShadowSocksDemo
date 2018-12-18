@@ -1,7 +1,8 @@
 package org.hum.socks.v6.localserver;
 
 import org.hum.socks.v6.common.Constant;
-import org.hum.socks.v6.common.PipeChannelHandler;
+import org.hum.socks.v6.common.DecryptPipeChannelHandler;
+import org.hum.socks.v6.common.EncryptPipeChannelHandler;
 import org.hum.socks.v6.common.codec.ProxyConnectMessageEncoder;
 import org.hum.socks.v6.common.codec.ProxyPreparedMessageDecoder;
 import org.hum.socks.v6.common.model.ProxyConnectMessage;
@@ -38,7 +39,6 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<SocksC
 				ch.pipeline().addLast(new PrepareConnectChannelHandler(browserCtx));
 			}
 		});
-		// bootstrap.handler(new PipeChannelHandler("local.pipe1", browserCtx.channel())); // 读proxy并向browser写（从proxy到browser）
 		bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
 		bootstrap.connect(PROXY_HOST, PROXY_PORT).addListener(new ChannelFutureListener() {
@@ -67,11 +67,11 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<SocksC
 		@Override
 		protected void channelRead0(ChannelHandlerContext proxyCtx, ProxyPreparedMessage msg) throws Exception {
 			// 开启数据转发管道，读proxy并向browser写（从proxy到browser）
-			proxyCtx.pipeline().addLast(new PipeChannelHandler("local.pipe1", browserCtx.channel()));
+			proxyCtx.pipeline().addLast(new DecryptPipeChannelHandler("local.pipe4", browserCtx.channel()));
 			proxyCtx.pipeline().remove(PrepareConnectChannelHandler.class);
 			proxyCtx.pipeline().remove(ProxyPreparedMessageDecoder.class);
 			// 读browser并向proxy写（从browser到proxy）
-			browserCtx.pipeline().addLast(new PipeChannelHandler("local.pipe2", proxyCtx.channel()));
+			browserCtx.pipeline().addLast(new EncryptPipeChannelHandler("local.pipe1", proxyCtx.channel()));
 			// 与proxy-server握手完成后，告知browser socks协议结束，后面可以开始发送真正数据了(为了保证数据传输正确性，flush最好还是放到后面)
 			browserCtx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, SocksAddressType.IPv4));
 			System.out.println("flush browser success");
