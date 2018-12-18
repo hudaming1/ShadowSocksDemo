@@ -1,5 +1,7 @@
 package org.hum.socks.v5.proxyserver;
 
+import org.hum.socks.v5.common.codec.ProxyConnectMessageDecorder;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;

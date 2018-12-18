@@ -1,4 +1,4 @@
-package org.hum.socks.v5.common;
+package org.hum.socks.v5.common.model;
 
 public class ProxyConnectMessage {
 

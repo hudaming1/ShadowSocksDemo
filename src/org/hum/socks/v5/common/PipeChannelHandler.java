@@ -6,6 +6,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class PipeChannelHandler extends ChannelInboundHandlerAdapter {
 	
+	@SuppressWarnings("unused")
 	private String name;
 	private Channel pipeChannel;
 	
@@ -17,7 +18,6 @@ public class PipeChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     		if (pipeChannel.isActive()) {
-    			System.out.println(name + " transfer message[" + System.nanoTime() + "]");
     			pipeChannel.writeAndFlush(msg);
     		}
     }

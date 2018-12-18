@@ -1,6 +1,6 @@
-package org.hum.socks.v5.localserver;
+package org.hum.socks.v5.common.codec;
 
-import org.hum.socks.v5.common.ProxyConnectMessage;
+import org.hum.socks.v5.common.model.ProxyConnectMessage;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,6 +14,5 @@ public class ProxyConnectMessageEncoder extends MessageToByteEncoder<ProxyConnec
 		out.writeInt(message.getHostLen());
 		out.writeBytes(message.getHost().getBytes());
 		out.writeShort(message.getPort());
-		System.out.println("encoded");
 	}
 }
