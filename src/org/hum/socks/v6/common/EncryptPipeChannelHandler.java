@@ -21,6 +21,19 @@ public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 		this.pipeChannel = channel;
 	}
 
+	public static void main(String[] args) {
+		byte[] bytes = new byte[1040];
+		for (int i = 0; i < 1040; i++) {
+			bytes[i] = (byte) i;
+		}
+		ByteBuf buf = Unpooled.buffer(bytes.length);
+		buf.writeBytes(bytes);
+		System.out.println(buf.capacity());
+		byte[] bytesCopy = new byte[1040];
+		buf.getBytes(0, bytesCopy);
+		System.out.println(Arrays.toString(bytesCopy));
+	}
+
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		try {
@@ -31,12 +44,14 @@ public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 					byte[] arr = new byte[len];
 					bytebuff.getBytes(0, arr);
 					try {
+						long id = System.currentTimeMillis();
+						System.out.println("[" + id + "][before-enc][" + len + "]" + Arrays.toString(arr));
 						byte[] encrypt = Utils.encrypt(arr);
 						len = encrypt.length;
-						ByteBuf buf = Unpooled.buffer(encrypt.length + 4);
+						ByteBuf buf = Unpooled.buffer(encrypt.length + 4); // +4是int长度
 						buf.writeInt(encrypt.length);
 						buf.writeBytes(encrypt);
-						System.out.println("[enc]" + encrypt.length + ":" + Arrays.toString(encrypt));
+						System.out.println("[" + id + "][enc][" + encrypt.length + "][" + buf.capacity() + "]" + Arrays.toString(encrypt));
 						pipeChannel.writeAndFlush(buf);
 					} catch (Exception e) {
 						System.out.println(name + " error, len=" + len);

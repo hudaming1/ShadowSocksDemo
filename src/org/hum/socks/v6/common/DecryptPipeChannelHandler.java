@@ -25,11 +25,14 @@ public class DecryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		try {
 			if (pipeChannel.isActive()) {
-				ByteBuf bytebuff = (ByteBuf) msg;
+				ByteBuf bytebuff = (ByteBuf) msg; // PooledUnsafeDirectByteBuf
 				if (!bytebuff.hasArray()) {
 					int len = bytebuff.readInt();
 					byte[] arr = new byte[len];
 					try {
+						byte[] test = new byte[bytebuff.capacity()];
+						bytebuff.getBytes(0, test);
+						System.out.println("[before-dec][" + bytebuff.capacity() + "]" + Arrays.toString(test));
 						bytebuff.getBytes(4, arr); // skip length bytes
 						System.out.println("[dec]" + len + ":" + Arrays.toString(arr));
 						byte[] decrypt = Utils.decrypt(arr);
