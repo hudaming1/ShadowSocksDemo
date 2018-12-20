@@ -1,18 +1,21 @@
-package org.hum.netty.bytebuf;
+package org.hum.socks.v6.common.codec;
 
 import java.util.List;
-import org.hum.netty.bytebuf.Decoder.State;
+
+import org.hum.socks.v6.common.codec.FullBytesDecoder.State;
+import org.hum.socks.v6.common.model.FullByteMessage;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 
-public class Decoder extends ReplayingDecoder<State> {
+public class FullBytesDecoder extends ReplayingDecoder<State> {
 
 	enum State {
 		INIT, SUCCESS, FAILURE
 	}
 
-	public Decoder() {
+	public FullBytesDecoder() {
 		super(State.INIT);
 	}
 
@@ -24,10 +27,15 @@ public class Decoder extends ReplayingDecoder<State> {
 			FullByteMessage msg = new FullByteMessage();
 			msg.datas = new byte[len];
 			in.readBytes(msg.datas);
-			state(State.SUCCESS);
+			System.out.println("decode.len=" + msg.datas.length);
 			out.add(msg);
+			checkpoint(State.SUCCESS);
 			break;
 		case SUCCESS:
+            int readableBytes = actualReadableBytes();
+            if (readableBytes > 0) {
+                out.add(in.readRetainedSlice(readableBytes));
+            }
 			break;
 		case FAILURE:
 			break;

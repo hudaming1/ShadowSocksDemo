@@ -11,18 +11,18 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
+public class EncryptPipeChannelHandler2 extends ChannelInboundHandlerAdapter {
 
 	private String name;
 	private Channel pipeChannel;
 
-	public EncryptPipeChannelHandler(String name, Channel channel) {
+	public EncryptPipeChannelHandler2(String name, Channel channel) {
 		this.name = name;
 		this.pipeChannel = channel;
 	}
-
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		System.out.println("123123");
 		try {
 			if (pipeChannel.isActive()) {
 				ByteBuf bytebuff = (ByteBuf) msg;
@@ -31,17 +31,13 @@ public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 					byte[] arr = new byte[len];
 					bytebuff.getBytes(0, arr);
 					try {
-						long id = System.currentTimeMillis();
-//						System.out.println("[" + id + "][before-enc][" + len + "]" + Arrays.toString(arr));
+						System.out.println("[enc]len=" + len + ", arr=" + Arrays.toString(arr));
 						byte[] encrypt = Utils.encrypt(arr);
 						len = encrypt.length;
-						System.out.println("[" + id + "][after-enc][" + encrypt.length + "]" + Arrays.toString(encrypt));
-//						ByteBuf buf = Unpooled.buffer(encrypt.length + 4); // +4是int长度
-//						buf.writeInt(encrypt.length);
-//						buf.writeBytes(encrypt);
-//						System.out.println("[" + id + "][enc][" + encrypt.length + "][" + buf.capacity() + "]" + Arrays.toString(encrypt));
-//						pipeChannel.writeAndFlush(buf);
-						pipeChannel.writeAndFlush(Unpooled.wrappedBuffer(encrypt));
+						ByteBuf buf = Unpooled.buffer(encrypt.length + 4); // +4是int长度
+						buf.writeInt(encrypt.length);
+						buf.writeBytes(encrypt);
+						pipeChannel.writeAndFlush(buf);
 					} catch (Exception e) {
 						System.out.println(name + " error, len=" + len);
 						e.printStackTrace();

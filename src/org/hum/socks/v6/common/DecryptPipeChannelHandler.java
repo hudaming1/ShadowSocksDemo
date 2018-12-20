@@ -27,18 +27,20 @@ public class DecryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 			if (pipeChannel.isActive()) {
 				ByteBuf bytebuff = (ByteBuf) msg; // PooledUnsafeDirectByteBuf
 				if (!bytebuff.hasArray()) {
-					int len = bytebuff.readInt();
-					byte[] arr = new byte[len];
+//					int len = bytebuff.readInt();
+//					System.out.println("len:" + len);
+					byte[] arr = new byte[bytebuff.readableBytes()];
 					try {
-						byte[] test = new byte[bytebuff.capacity()];
-						bytebuff.getBytes(0, test);
-						System.out.println("[before-dec][" + bytebuff.capacity() + "]" + Arrays.toString(test));
-						bytebuff.getBytes(4, arr); // skip length bytes
-						System.out.println("[dec]" + len + ":" + Arrays.toString(arr));
+//						byte[] test = new byte[len];
+//						bytebuff.getBytes(0, test);
+//						System.out.println("[before-dec][" + bytebuff.capacity() + "]" + Arrays.toString(test));
+						bytebuff.getBytes(0, arr); // skip length bytes
+						System.out.println("[" + arr.length + "] " + Arrays.toString(arr));
+//						System.out.println("[dec]" + len + ":" + Arrays.toString(arr));
 						byte[] decrypt = Utils.decrypt(arr);
 						pipeChannel.writeAndFlush(Unpooled.wrappedBuffer(decrypt));
 					} catch (Exception e) {
-						System.out.println(name + " error, len=" + len);
+//						System.out.println(name + " error, len=" + len);
 						e.printStackTrace();
 					}
 				}
