@@ -50,10 +50,14 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<ProxyC
 						localServerChannel.pipeline().remove(ProxyPreparedMessageEncoder.class);
 					}
 				}); 
-				
 				// socks协议壳已脱，因此后面转发只需要靠pipe_handler即可，因此删除SocksConnectHandler
 				localServerChannel.pipeline().remove(ServerPipeChannelHandler.this);
 			}
 		});
 	}
 }
+
+
+
+
+
