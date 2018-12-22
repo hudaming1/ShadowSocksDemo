@@ -25,7 +25,7 @@ public class DecryptPipeChannelHandler2 extends SimpleChannelInboundHandler<Full
 	protected void channelRead0(ChannelHandlerContext ctx, FullByteMessage msg) throws Exception {
 		if (pipeChannel.isActive()) {
 			byte[] decrypt = Utils.decrypt(msg.datas);
-			System.out.println("[dec][" + decrypt.length + "]" + Arrays.toString(decrypt));
+			System.out.println("[dec][channel" + ctx.hashCode() + "][" + decrypt.length + "]" + Arrays.toString(decrypt));
 			pipeChannel.writeAndFlush(Unpooled.wrappedBuffer(decrypt));
 		}
 	}

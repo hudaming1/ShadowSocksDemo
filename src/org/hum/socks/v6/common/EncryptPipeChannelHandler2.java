@@ -21,6 +21,7 @@ public class EncryptPipeChannelHandler2 extends ChannelInboundHandlerAdapter {
 		this.name = name;
 		this.pipeChannel = channel;
 	}
+	
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		try {
@@ -29,7 +30,7 @@ public class EncryptPipeChannelHandler2 extends ChannelInboundHandlerAdapter {
 				if (!bytebuff.hasArray()) {
 					int len = bytebuff.readableBytes();
 					byte[] arr = new byte[len];
-					System.out.println("reading.....");
+					System.out.println("[channel" + ctx.channel().hashCode() + "]reading.....");
 					bytebuff.getBytes(0, arr);
 					try {
 						System.out.println("[enc][" + len + "], arr=" + Arrays.toString(arr));
@@ -39,10 +40,13 @@ public class EncryptPipeChannelHandler2 extends ChannelInboundHandlerAdapter {
 						buf.writeInt(encrypt.length);
 						buf.writeBytes(encrypt);
 						pipeChannel.writeAndFlush(buf);
+						System.out.println("flush " + len);
 					} catch (Exception e) {
 						System.out.println(name + " error, len=" + len);
 						e.printStackTrace();
 					}
+				} else {
+					System.out.println("has no array");
 				}
 			}
 		} finally {

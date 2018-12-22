@@ -21,9 +21,14 @@ public class FullBytesDecoder extends ReplayingDecoder<State> {
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-		switch (state()) {
+		State state2 = state();
+		System.out.println(state2);
+		switch (state2) {
 		case INIT:
+			System.out.println("before decode length");
+			System.out.println("wait decode length =" + in.readableBytes());
 			int len = in.readInt();
+			System.out.println("wait decrypt length=" + len);
 			FullByteMessage msg = new FullByteMessage();
 			msg.datas = new byte[len];
 			in.readBytes(msg.datas);

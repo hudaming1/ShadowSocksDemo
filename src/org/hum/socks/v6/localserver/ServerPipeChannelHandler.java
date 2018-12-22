@@ -77,7 +77,6 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<SocksC
 			browserCtx.pipeline().addLast(new EncryptPipeChannelHandler2("local.pipe1", proxyCtx.channel()));
 			// 与proxy-server握手完成后，告知browser socks协议结束，后面可以开始发送真正数据了(为了保证数据传输正确性，flush最好还是放到后面)
 			browserCtx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, SocksAddressType.IPv4));
-			System.out.println("flush browser success");
 		}
 	}
 }

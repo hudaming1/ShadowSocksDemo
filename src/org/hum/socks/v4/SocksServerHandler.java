@@ -15,6 +15,7 @@ public class SocksServerHandler extends SimpleChannelInboundHandler<SocksRequest
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, SocksRequest msg) throws Exception {
+		System.out.println("SocksServerHandler.channelRead, msg=" + msg);
 		switch (msg.requestType()) {
 		case INIT:
 			ctx.pipeline().addFirst(new SocksCmdRequestDecoder());

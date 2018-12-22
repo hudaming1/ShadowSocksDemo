@@ -1,6 +1,9 @@
 package org.hum.socks.v4;
 
+import java.util.Arrays;
+
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -65,6 +68,12 @@ public class SocksConnectHandler extends SimpleChannelInboundHandler<SocksCmdReq
 	    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 	    		// pipe mode : read and write
 	    		if (outChannel.isActive()) {
+	    			ByteBuf buf = (ByteBuf) msg;
+	    			if (!buf.hasArray()) {
+	    				byte[] bytes = new byte[buf.readableBytes()];
+	    				buf.getBytes(0, bytes);
+	    				System.out.println("[" + bytes.length + "]" + Arrays.toString(bytes) + " >> \n" + new String(bytes));
+	    			}
 	    			outChannel.writeAndFlush(msg);
 	    		}
 	    }
