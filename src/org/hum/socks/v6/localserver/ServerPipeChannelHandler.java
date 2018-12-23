@@ -25,8 +25,8 @@ import io.netty.handler.codec.socks.SocksCmdStatus;
 
 public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<SocksCmdRequest> {
 
-	private final String PROXY_HOST = "127.0.0.1";
-	private final int PROXY_PORT = 1081;
+	private final String PROXY_HOST = "47.75.102.227";
+	private final int PROXY_PORT = 1080;
 	
 	@Override
 	protected void channelRead0(final ChannelHandlerContext browserCtx, final SocksCmdRequest msg) throws Exception {

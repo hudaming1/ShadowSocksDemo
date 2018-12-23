@@ -21,6 +21,6 @@ public class ProxyServerStart {
 				ch.pipeline().addLast(new ServerPipeChannelHandler());
 			}
 		});
-		serverBootStrap.bind(1081);
+		serverBootStrap.bind(1080);
 	}
 }
