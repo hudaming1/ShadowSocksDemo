@@ -1,9 +1,9 @@
 package org.hum.socks.v6.localserver;
 
 import org.hum.socks.v6.common.Constant;
-import org.hum.socks.v6.common.DecryptPipeChannelHandler2;
-import org.hum.socks.v6.common.EncryptPipeChannelHandler2;
-import org.hum.socks.v6.common.codec.FullBytesDecoder;
+import org.hum.socks.v6.common.DecryptPipeChannelHandler;
+import org.hum.socks.v6.common.EncryptPipeChannelHandler;
+import org.hum.socks.v6.common.codec.IODecoder;
 import org.hum.socks.v6.common.codec.ProxyConnectMessageEncoder;
 import org.hum.socks.v6.common.codec.ProxyPreparedMessageDecoder;
 import org.hum.socks.v6.common.model.ProxyConnectMessage;
@@ -69,12 +69,12 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<SocksC
 		protected void channelRead0(ChannelHandlerContext proxyCtx, ProxyPreparedMessage msg) throws Exception {
 			// 开启数据转发管道，读proxy并向browser写（从proxy到browser）
 			// proxyCtx.pipeline().addLast("framedecoder", new LengthFieldBasedFrameDecoder(1024 * 1024 * 1024, 0, 0, 0, 0));
-			proxyCtx.pipeline().addLast(new FullBytesDecoder());
-			proxyCtx.pipeline().addLast(new DecryptPipeChannelHandler2("local.pipe4", browserCtx.channel()));
+			proxyCtx.pipeline().addLast(new IODecoder());
+			proxyCtx.pipeline().addLast(new DecryptPipeChannelHandler("local.pipe4", browserCtx.channel()));
 			proxyCtx.pipeline().remove(PrepareConnectChannelHandler.class);
 			proxyCtx.pipeline().remove(ProxyPreparedMessageDecoder.class);
 			// 读browser并向proxy写（从browser到proxy）
-			browserCtx.pipeline().addLast(new EncryptPipeChannelHandler2("local.pipe1", proxyCtx.channel()));
+			browserCtx.pipeline().addLast(new EncryptPipeChannelHandler("local.pipe1", proxyCtx.channel()));
 			// 与proxy-server握手完成后，告知browser socks协议结束，后面可以开始发送真正数据了(为了保证数据传输正确性，flush最好还是放到后面)
 			browserCtx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, SocksAddressType.IPv4));
 		}

@@ -1,7 +1,5 @@
 package org.hum.socks.v6.common;
 
-import java.util.Arrays;
-
 import org.hum.socks.v6.common.util.Utils;
 
 import io.netty.buffer.ByteBuf;
@@ -13,6 +11,7 @@ import io.netty.util.ReferenceCountUtil;
 
 public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 
+	@SuppressWarnings("unused")
 	private String name;
 	private Channel pipeChannel;
 
@@ -27,23 +26,15 @@ public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 			if (pipeChannel.isActive()) {
 				ByteBuf bytebuff = (ByteBuf) msg;
 				if (!bytebuff.hasArray()) {
-					int len = bytebuff.readableBytes();
-					byte[] arr = new byte[len];
+					byte[] arr = new byte[bytebuff.readableBytes()];
 					bytebuff.getBytes(0, arr);
 					try {
-						long id = System.currentTimeMillis();
-//						System.out.println("[" + id + "][before-enc][" + len + "]" + Arrays.toString(arr));
 						byte[] encrypt = Utils.encrypt(arr);
-						len = encrypt.length;
-						System.out.println("[" + id + "][after-enc][" + encrypt.length + "]" + Arrays.toString(encrypt));
-//						ByteBuf buf = Unpooled.buffer(encrypt.length + 4); // +4是int长度
-//						buf.writeInt(encrypt.length);
-//						buf.writeBytes(encrypt);
-//						System.out.println("[" + id + "][enc][" + encrypt.length + "][" + buf.capacity() + "]" + Arrays.toString(encrypt));
-//						pipeChannel.writeAndFlush(buf);
-						pipeChannel.writeAndFlush(Unpooled.wrappedBuffer(encrypt));
+						ByteBuf buf = Unpooled.buffer(encrypt.length + 2); // +4是int长度
+						buf.writeBytes(encrypt);
+						buf.writeBytes(Constant.FIXED_DERTIMED.getBytes());
+						pipeChannel.writeAndFlush(buf);
 					} catch (Exception e) {
-						System.out.println(name + " error, len=" + len);
 						e.printStackTrace();
 					}
 				}
