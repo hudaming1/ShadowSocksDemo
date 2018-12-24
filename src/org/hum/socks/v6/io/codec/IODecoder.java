@@ -1,4 +1,4 @@
-package org.hum.socks.v6.common.codec;
+package org.hum.socks.v6.io.codec;
 
 import org.hum.socks.v6.common.Constant;
 

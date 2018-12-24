@@ -1,6 +1,6 @@
 package org.hum.socks.v6.proxyserver;
 
-import org.hum.socks.v6.common.codec.ProxyConnectMessageDecorder;
+import org.hum.socks.v6.io.codec.ProxyConnectMessageCodec.ProxyConnectMessageDecorder;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;

@@ -1,13 +1,13 @@
 package org.hum.socks.v6.localserver;
 
 import org.hum.socks.v6.common.Constant;
-import org.hum.socks.v6.common.DecryptPipeChannelHandler;
-import org.hum.socks.v6.common.EncryptPipeChannelHandler;
-import org.hum.socks.v6.common.codec.IODecoder;
-import org.hum.socks.v6.common.codec.ProxyConnectMessageEncoder;
-import org.hum.socks.v6.common.codec.ProxyPreparedMessageDecoder;
-import org.hum.socks.v6.common.model.ProxyConnectMessage;
-import org.hum.socks.v6.common.model.ProxyPreparedMessage;
+import org.hum.socks.v6.io.codec.IODecoder;
+import org.hum.socks.v6.io.codec.ProxyConnectMessageCodec.ProxyConnectMessageEncoder;
+import org.hum.socks.v6.io.codec.ProxyPreparedMessageCodec.ProxyPreparedMessageDecoder;
+import org.hum.socks.v6.io.codec.model.ProxyConnectMessage;
+import org.hum.socks.v6.io.codec.model.ProxyPreparedMessage;
+import org.hum.socks.v6.io.handler.DecryptPipeChannelHandler;
+import org.hum.socks.v6.io.handler.EncryptPipeChannelHandler;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -68,7 +68,6 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<SocksC
 		@Override
 		protected void channelRead0(ChannelHandlerContext proxyCtx, ProxyPreparedMessage msg) throws Exception {
 			// 开启数据转发管道，读proxy并向browser写（从proxy到browser）
-			// proxyCtx.pipeline().addLast("framedecoder", new LengthFieldBasedFrameDecoder(1024 * 1024 * 1024, 0, 0, 0, 0));
 			proxyCtx.pipeline().addLast(new IODecoder());
 			proxyCtx.pipeline().addLast(new DecryptPipeChannelHandler("local.pipe4", browserCtx.channel()));
 			proxyCtx.pipeline().remove(PrepareConnectChannelHandler.class);

@@ -1,13 +1,13 @@
 package org.hum.socks.v6.proxyserver;
 
 import org.hum.socks.v6.common.Constant;
-import org.hum.socks.v6.common.DecryptPipeChannelHandler;
-import org.hum.socks.v6.common.EncryptPipeChannelHandler;
-import org.hum.socks.v6.common.codec.IODecoder;
-import org.hum.socks.v6.common.codec.ProxyConnectMessageDecorder;
-import org.hum.socks.v6.common.codec.ProxyPreparedMessageEncoder;
-import org.hum.socks.v6.common.model.ProxyConnectMessage;
-import org.hum.socks.v6.common.model.ProxyPreparedMessage;
+import org.hum.socks.v6.io.codec.IODecoder;
+import org.hum.socks.v6.io.codec.ProxyConnectMessageCodec.ProxyConnectMessageDecorder;
+import org.hum.socks.v6.io.codec.ProxyPreparedMessageCodec.ProxyPreparedMessageEncoder;
+import org.hum.socks.v6.io.codec.model.ProxyConnectMessage;
+import org.hum.socks.v6.io.codec.model.ProxyPreparedMessage;
+import org.hum.socks.v6.io.handler.DecryptPipeChannelHandler;
+import org.hum.socks.v6.io.handler.EncryptPipeChannelHandler;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -39,8 +39,6 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<ProxyC
 			@Override
 			public void operationComplete(final ChannelFuture remoteChannelFuture) throws Exception {
 				// pipe2: 读localServer并向remote写（从localServer到remote）
-				// localServerChannel.pipeline().addLast("framedecoder", new LengthFieldBasedFrameDecoder(1024 * 1024 * 1024, 0, 4, 0, 4));
-				// localServerChannel.pipeline().addLast(new FullBytesDecoder());
 				localServerChannel.pipeline().addLast(new IODecoder());
 				localServerChannel.pipeline().addLast(new DecryptPipeChannelHandler("server.pipe2", remoteChannelFuture.channel()));
 				localServerChannel.pipeline().addLast(new ProxyPreparedMessageEncoder());
@@ -57,8 +55,3 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<ProxyC
 		});
 	}
 }
-
-
-
-
-

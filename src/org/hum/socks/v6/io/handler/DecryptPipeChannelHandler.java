@@ -1,4 +1,4 @@
-package org.hum.socks.v6.common;
+package org.hum.socks.v6.io.handler;
 
 import org.hum.socks.v6.common.util.Utils;
 
@@ -9,13 +9,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
+public class DecryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 
 	@SuppressWarnings("unused")
 	private String name;
 	private Channel pipeChannel;
 
-	public EncryptPipeChannelHandler(String name, Channel channel) {
+	public DecryptPipeChannelHandler(String name, Channel channel) {
 		this.name = name;
 		this.pipeChannel = channel;
 	}
@@ -24,16 +24,13 @@ public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		try {
 			if (pipeChannel.isActive()) {
-				ByteBuf bytebuff = (ByteBuf) msg;
+				ByteBuf bytebuff = (ByteBuf) msg; 
 				if (!bytebuff.hasArray()) {
 					byte[] arr = new byte[bytebuff.readableBytes()];
-					bytebuff.getBytes(0, arr);
 					try {
-						byte[] encrypt = Utils.encrypt(arr);
-						ByteBuf buf = Unpooled.buffer(encrypt.length + 2); // +4是int长度
-						buf.writeBytes(encrypt);
-						buf.writeBytes(Constant.FIXED_DERTIMED.getBytes());
-						pipeChannel.writeAndFlush(buf);
+						bytebuff.getBytes(0, arr); 
+						byte[] decrypt = Utils.decrypt(arr);
+						pipeChannel.writeAndFlush(Unpooled.wrappedBuffer(decrypt));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -42,5 +39,9 @@ public class EncryptPipeChannelHandler extends ChannelInboundHandlerAdapter {
 		} finally {
 			ReferenceCountUtil.release(msg);
 		}
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(new String(new byte[] {  10, }));
 	}
 }
