@@ -1,5 +1,8 @@
 package org.hum.socks.v6.localserver;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.socks.SocksAuthResponse;
@@ -8,13 +11,18 @@ import io.netty.handler.codec.socks.SocksAuthStatus;
 import io.netty.handler.codec.socks.SocksCmdRequest;
 import io.netty.handler.codec.socks.SocksCmdRequestDecoder;
 import io.netty.handler.codec.socks.SocksCmdType;
+import io.netty.handler.codec.socks.SocksInitRequestDecoder;
 import io.netty.handler.codec.socks.SocksInitResponse;
 import io.netty.handler.codec.socks.SocksRequest;
 
 public class SocksServerHandler extends SimpleChannelInboundHandler<SocksRequest> {
 
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+	
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, SocksRequest msg) throws Exception {
+		// 小优化：删除init-decoder
+		ctx.pipeline().remove(SocksInitRequestDecoder.class);
 		switch (msg.requestType()) {
 		case INIT:
 			ctx.pipeline().addFirst(new SocksCmdRequestDecoder());
@@ -27,6 +35,7 @@ public class SocksServerHandler extends SimpleChannelInboundHandler<SocksRequest
 		case CMD:
 			SocksCmdRequest req = (SocksCmdRequest) msg;
 			if (req.cmdType() == SocksCmdType.CONNECT) {
+				System.out.println(sdf.format(new Date()) + "\t\t\t" + req.host() + ":" + req.port());
 				ctx.pipeline().addLast(new ServerPipeChannelHandler());
 				ctx.pipeline().remove(this);
 				ctx.fireChannelRead(msg);
