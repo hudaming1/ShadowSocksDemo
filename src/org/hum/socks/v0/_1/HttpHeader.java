@@ -16,7 +16,7 @@ public class HttpHeader {
 	private String host;
 	private String port;
 
-	public static final int MAXLINESIZE = 4096000;
+	public static final int MAXLINESIZE = 4096;
 
 	public static final String METHOD_GET = "GET";
 	public static final String METHOD_POST = "POST";
@@ -36,16 +36,17 @@ public class HttpHeader {
 		HttpHeader header = new HttpHeader();
 		BufferedReader br = new BufferedReader(new InputStreamReader(in, "utf-8"));
 		header.line = br.readLine() + "\n";
+		if (header.line.equals("null\n")) {
+			return null;
+		}
 		StringBuilder reqHeaders = new StringBuilder();
 		// 如能识别出请求方式则则继续，不能则退出
 		if (header.setRequestLine(header.line) != null) {
 			String headerLine = "";
-			String lastHeaderLine = "";
 			while (!(headerLine = br.readLine()).equals("")) {
-				lastHeaderLine = headerLine;
+				header.addHeaderString(headerLine);
 				reqHeaders.append(headerLine).append("\n");
 			}
-			header.addHeaderString(lastHeaderLine);
 		}
 		return header;
 	}
@@ -55,7 +56,6 @@ public class HttpHeader {
 	 * @param str
 	 */
 	private void addHeaderString(String str) {
-		str = str.replaceAll("\r", "");
 		headers.add(str);
 		if (str.startsWith("Host")) {// 解析主机和端口
 			String[] hosts = str.split(":");

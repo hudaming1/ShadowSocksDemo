@@ -14,7 +14,7 @@ import java.net.Socket;
 public class HttpSimpleServer {
 
 	static class Config {
-		public static final int PORT = 8888;
+		public static final int PORT = 8002;
 	}
 	
 	public static void main(String[] args) {
