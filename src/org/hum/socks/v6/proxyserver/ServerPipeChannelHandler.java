@@ -3,13 +3,14 @@ package org.hum.socks.v6.proxyserver;
 import org.hum.socks.v6.common.Constant;
 import org.hum.socks.v6.io.codec.IODecoder;
 import org.hum.socks.v6.io.codec.ProxyConnectMessageCodec.ProxyConnectMessageDecorder;
-import org.hum.socks.v6.io.codec.ProxyPreparedMessageCodec.ProxyPreparedMessageEncoder;
 import org.hum.socks.v6.io.codec.model.ProxyConnectMessage;
 import org.hum.socks.v6.io.codec.model.ProxyPreparedMessage;
 import org.hum.socks.v6.io.handler.DecryptPipeChannelHandler;
 import org.hum.socks.v6.io.handler.EncryptPipeChannelHandler;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -17,8 +18,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 
 public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<ProxyConnectMessage> {
 
@@ -41,17 +40,18 @@ public class ServerPipeChannelHandler extends SimpleChannelInboundHandler<ProxyC
 				// pipe2: 读localServer并向remote写（从localServer到remote）
 				localServerChannel.pipeline().addLast(new IODecoder());
 				localServerChannel.pipeline().addLast(new DecryptPipeChannelHandler("server.pipe2", remoteChannelFuture.channel()));
-				localServerChannel.pipeline().addLast(new ProxyPreparedMessageEncoder());
-				// 告知localserver，proxy已经准备好 (XXX 能用ByteBuf替换吗)
-				localServerChannel.writeAndFlush(new ProxyPreparedMessage(Constant.MAGIC_NUMBER, ProxyPreparedMessage.SUCCESS)).addListener(new GenericFutureListener<Future<? super Void>>() {
-					@Override
-					public void operationComplete(Future<? super Void> future) throws Exception {
-						localServerChannel.pipeline().remove(ProxyPreparedMessageEncoder.class);
-					}
-				}); 
+				// 告知localserver，proxy已经准备好
+				localServerChannel.writeAndFlush(createProxyPreparedMessage()); 
 				// socks协议壳已脱，因此后面转发只需要靠pipe_handler即可，因此删除SocksConnectHandler
 				localServerChannel.pipeline().remove(ServerPipeChannelHandler.this);
 			}
 		});
+	}
+	
+	private ByteBuf createProxyPreparedMessage() {
+		ByteBuf buf = Unpooled.buffer(8);
+		buf.writeInt(Constant.MAGIC_NUMBER);
+		buf.writeInt(ProxyPreparedMessage.SUCCESS);
+		return buf;
 	}
 }

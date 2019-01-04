@@ -11,7 +11,6 @@ import io.netty.handler.codec.socks.SocksAuthStatus;
 import io.netty.handler.codec.socks.SocksCmdRequest;
 import io.netty.handler.codec.socks.SocksCmdRequestDecoder;
 import io.netty.handler.codec.socks.SocksCmdType;
-import io.netty.handler.codec.socks.SocksInitRequestDecoder;
 import io.netty.handler.codec.socks.SocksInitResponse;
 import io.netty.handler.codec.socks.SocksRequest;
 
@@ -21,8 +20,6 @@ public class SocksServerHandler extends SimpleChannelInboundHandler<SocksRequest
 	
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, SocksRequest msg) throws Exception {
-		// 小优化：删除init-decoder
-		ctx.pipeline().remove(SocksInitRequestDecoder.class);
 		switch (msg.requestType()) {
 		case INIT:
 			ctx.pipeline().addFirst(new SocksCmdRequestDecoder());
