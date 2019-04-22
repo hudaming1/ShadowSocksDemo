@@ -10,12 +10,26 @@ public class HttpProxyServerHandler extends SimpleChannelInboundHandler<FullHttp
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-		System.out.println("uri:" + msg.uri());
+		String host = HttpUtil.parseHost(msg.uri());
+		short port = HttpUtil.parsePort(msg.uri());
+		System.out.println("====================" + host + ":" + port + "==========================");
 		System.out.println(msg);
-		System.out.println("======================================================");
 		if (msg.method() == HttpMethod.CONNECT) {
-			// ctx.channel().writeAndFlush(new DefaultHttpResponse(msg.protocolVersion(), HttpResponseStatus.OK));
 			ctx.channel().writeAndFlush(Unpooled.wrappedBuffer("HTTP/1.1 200 Connection established\r\n\r\n".getBytes()));
 		}
+	}
+}
+
+class HttpUtil {
+	public static String parseHost(String uri) {
+		return uri.split(":")[0];
+	}
+	
+	public static short parsePort(String uri) {
+		String[] sArr = uri.split(":");
+		if (sArr.length == 1) {
+			return 80;
+		}
+		return Short.parseShort(uri.split(":")[1]);
 	}
 }
