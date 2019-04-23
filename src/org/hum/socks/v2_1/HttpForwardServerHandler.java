@@ -45,9 +45,15 @@ public class HttpForwardServerHandler extends SimpleChannelInboundHandler<FullHt
 
 class FowardChannelHandler extends ChannelInboundHandlerAdapter {
 	private ChannelHandlerContext ctx;
-	
+
 	public FowardChannelHandler(ChannelHandlerContext ctx) {
 		this.ctx = ctx;
+	}
+
+	@Override
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		this.ctx.writeAndFlush(msg);
+		ctx.fireChannelRead(msg);
 	}
 }
 
