@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 /**
- * Spring boot app.test
+ * Spring boot app.testaaa
  * @author shuaicj 2017/09/21
  */
 @SpringBootApplication
