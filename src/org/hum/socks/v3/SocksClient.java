@@ -22,6 +22,7 @@ public class SocksClient {
 	
 	private static final int LISTENING_PORT = 1080;
 
+	// test
 	public static void main(String[] args) throws IOException, InterruptedException {
 		EventLoopGroup bossGroup = new NioEventLoopGroup();
 		EventLoopGroup workerGroup = new NioEventLoopGroup();
