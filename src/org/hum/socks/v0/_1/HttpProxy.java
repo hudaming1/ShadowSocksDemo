@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class HttpProxy implements Runnable {
 
-	private static final int LISTENNING_PORT = 8002;
+	private static final int LISTENNING_PORT = 5432;
 	private static final ExecutorService ExecutorService = Executors.newFixedThreadPool(200);
 	private static final SimpleDateFormat SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	private Socket browserSocket;

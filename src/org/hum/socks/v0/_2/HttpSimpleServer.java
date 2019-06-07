@@ -34,12 +34,19 @@ public class HttpSimpleServer {
 					System.out.println(requestHeader);
 				}
 				
+				StringBuilder sbuilder = new StringBuilder();
+				for (int i = 0; i < 1000; i++) {
+					sbuilder.append("hello world " + i);
+				}
+				
 				// 3.服务器处理请求饭后返回HTTP响应
 				PrintWriter pw = new PrintWriter(socket.getOutputStream());
-				pw.println("HTTP/1.1 200 OK");
-				pw.println("Content-type:text/html");
-				pw.println(); // 注意：根据http协议标准，一定要打印空行
-				pw.println("<h1>Hello HttpServer</h1>");
+				String resp = "HTTP/1.1 200 OK \n"
+						+ "Content-type:text/html\n"
+						+ "\n"
+						+ "<h1>" + sbuilder + "</h1>";
+				System.out.println("write len=" + resp.length());
+				pw.write(resp);
 				pw.flush();
 				
 				// 4.释放连接
